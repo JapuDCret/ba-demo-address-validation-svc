@@ -22,7 +22,7 @@ import javax.ws.rs.core.Response;
 @Singleton
 public class AddressValidationResource {
 
-    private static Logger logger = LoggerFactory.getLogger(AddressValidationResource.class.getName());
+    private static Logger log = LoggerFactory.getLogger(AddressValidationResource.class.getName());
 
     @Inject
     private AddressValidationService service;
@@ -30,16 +30,17 @@ public class AddressValidationResource {
     @POST
     @Operation(description = "Validates an address, returns 400 if the address is invalid")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response validateAddress(
             @RequestBody(required = true, content = @Content(schema = @Schema(implementation = Address.class)))
             @NotNull @Valid Address address
     ) {
-        boolean valid = service.isValid(address);
+        ValidationResult validationResult = service.isValid(address);
 
-        if(valid) {
-            return Response.ok().build();
+        if(validationResult.isValid()) {
+            return Response.ok().entity(validationResult).build();
         } else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(validationResult).build();
         }
     }
 }
