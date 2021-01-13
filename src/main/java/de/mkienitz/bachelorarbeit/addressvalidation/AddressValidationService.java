@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AddressValidationService {
 
@@ -40,8 +42,15 @@ public class AddressValidationService {
         }
 
         /* validate streetName */
-        if(address.getStreetNumber() == null) {
+        String streetName = address.getStreetName();
+        if(streetName == null) {
             log.info("isValid(): address.streetName is null, returning false");
+            return new ValidationResult(false, "streetName");
+        }
+        Pattern streetNamePattern = Pattern.compile("[a-zA-Z\\,\\-\\ ]+");
+        Matcher streetNameMatcher = streetNamePattern.matcher(streetName);
+        if(!streetNameMatcher.matches()) {
+            log.info("isValid(): address.streetName is does not meet regex, returning false");
             return new ValidationResult(false, "streetName");
         }
 
@@ -68,12 +77,13 @@ public class AddressValidationService {
         }
 
         /* validate city */
-        if(address.getCity() == null) {
+        String city = address.getCity();
+        if(city == null) {
             log.info("isValid(): address.city is null, returning false");
             return new ValidationResult(false, "city");
         }
-        if(!staedte.contains(address.getCity())) {
-            log.info("isValid(): address.city has an unknown value (\"" + address.getCity() + "\"), returning false");
+        if(!staedte.contains(city)) {
+            log.info("isValid(): address.city has an unknown value (\"" + city + "\"), returning false");
             return new ValidationResult(false, "city");
         }
 
