@@ -20,19 +20,22 @@ public class AddressValidationService {
     public AddressValidationService() throws IOException {
         URL staedteResource = this.getClass().getClassLoader().getResource("staedte_osm.txt");
 
-        BufferedReader read = new BufferedReader(new InputStreamReader(staedteResource.openStream()));
-
         Set<String> staedte = new TreeSet<>();
 
-        String i;
-        while ((i = read.readLine()) != null) {
-            staedte.add(i);
+        try(BufferedReader read = new BufferedReader(new InputStreamReader(staedteResource.openStream()))) {
+            String i;
+            while ((i = read.readLine()) != null) {
+                staedte.add(i);
+            }
+        } catch(IOException ioe) {
+            log.error("AddressValidationService(): could not initialize this.staedte: ", ioe);
+
+            throw ioe;
         }
-        read.close();
 
         this.staedte = staedte;
 
-        log.debug("AddressValidationService(): this.staedte = " + Arrays.toString(this.staedte.toArray()));
+        log.debug("AddressValidationService(): this.staedte.size() = " + this.staedte.size());
     }
 
     public ValidationResult isValid(Address address) {

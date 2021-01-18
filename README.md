@@ -40,8 +40,7 @@ Start
 
 Stop & Remove
 
-    docker stop address-validation-svc
-    docker rm address-validation-svc
+    docker stop address-validation-svc && docker rm address-validation-svc
 
 ### Publish Image
 
