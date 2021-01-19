@@ -1,5 +1,6 @@
 package de.mkienitz.bachelorarbeit.addressvalidation;
 
+import org.eclipse.microprofile.opentracing.Traced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,7 @@ public class AddressValidationService {
         log.debug("AddressValidationService(): this.staedte.size() = " + this.staedte.size());
     }
 
+    @Traced(operationName = "AddressValidationService.isValid")
     public ValidationResult isValid(Address address) {
         if(address == null) {
             log.info("isValid(): Address object is null, returning false");
