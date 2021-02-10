@@ -5,9 +5,6 @@ import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- *
- */
 @ApplicationPath("/data")
 public class AddressValidationSvcRestApplication extends Application {
     @Override

@@ -4,6 +4,8 @@ import org.eclipse.microprofile.opentracing.Traced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,13 +14,15 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@ApplicationScoped
 public class AddressValidationService {
 
     private static Logger log = LoggerFactory.getLogger(AddressValidationService.class.getName());
 
-    private final Set<String> staedte;
+    private Set<String> staedte;
 
-    public AddressValidationService() throws IOException {
+    @PostConstruct
+    public void postConstruct() throws IOException {
         URL staedteResource = this.getClass().getClassLoader().getResource("staedte_osm.txt");
 
         Set<String> staedte = new TreeSet<>();
@@ -29,14 +33,14 @@ public class AddressValidationService {
                 staedte.add(i);
             }
         } catch(IOException ioe) {
-            log.error("AddressValidationService(): could not initialize this.staedte: ", ioe);
+            log.error("postConstruct(): could not initialize this.staedte: ", ioe);
 
             throw ioe;
         }
 
         this.staedte = staedte;
 
-        log.debug("AddressValidationService(): this.staedte.size() = " + this.staedte.size());
+        log.debug("postConstruct(): this.staedte.size() = " + this.staedte.size());
     }
 
     @Traced(operationName = "AddressValidationService.isValid")
@@ -47,42 +51,71 @@ public class AddressValidationService {
         }
 
         /* validate streetName */
-        String streetName = address.getStreetName();
+        ValidationResult streetNameValidation = this.validateStreetName(address.getStreetName());
+        if(!streetNameValidation.isValid()) return streetNameValidation;
+
+        /* validate streetNumber */
+        ValidationResult streetNumberValidation = this.validateStreetNumber(address.getStreetNumber());
+        if(!streetNumberValidation.isValid()) return streetNumberValidation;
+
+        /* validate postalCode */
+        ValidationResult postalCodeValidation = this.validatePostalCode(address.getPostalCode());
+        if(!postalCodeValidation.isValid()) return postalCodeValidation;
+
+        /* validate city */
+        ValidationResult cityValidation = this.validateCity(address.getCity());
+        if(!cityValidation.isValid()) return cityValidation;
+
+        return new ValidationResult(true);
+    }
+
+    private static final Pattern streetNamePattern = Pattern.compile("[a-zA-Z\\,\\-\\ ]+");
+    private ValidationResult validateStreetName(String streetName) {
         if(streetName == null) {
             log.info("isValid(): address.streetName is null, returning false");
             return new ValidationResult(false, "streetName");
         }
-        Pattern streetNamePattern = Pattern.compile("[a-zA-Z\\,\\-\\ ]+");
+
         Matcher streetNameMatcher = streetNamePattern.matcher(streetName);
         if(!streetNameMatcher.matches()) {
             log.info("isValid(): address.streetName is does not meet regex, returning false");
             return new ValidationResult(false, "streetName");
         }
 
-        /* validate streetNumber */
-        Integer iStreetNumber = isInteger(address.getStreetNumber());
+        return new ValidationResult(true);
+    }
+
+    private ValidationResult validateStreetNumber(String streetNumber) {
+        Integer iStreetNumber = isInteger(streetNumber);
         if(iStreetNumber == null) {
-            log.info("isValid(): address.streetNumber is not an integer (\"" + address.getStreetNumber() + "\"), returning false");
+            log.info("validateStreetNumber(): address.streetNumber is not an integer (\"" + streetNumber + "\"), returning false");
             return new ValidationResult(false, "streetNumber");
         }
+
         if(iStreetNumber < 1 || iStreetNumber >= 10000) {
-            log.info("isValid(): address.streetNumber is not a valid streetNumber (" + iStreetNumber + "), returning false");
+            log.info("validateStreetNumber(): address.streetNumber is not a valid streetNumber (" + iStreetNumber + "), returning false");
             return new ValidationResult(false, "streetNumber");
         }
 
-        /* validate postalCode */
-        Integer iPostalCode = isInteger(address.getPostalCode());
+        return new ValidationResult(true);
+    }
+
+    private ValidationResult validatePostalCode(String postalCode) {
+        Integer iPostalCode = isInteger(postalCode);
         if(iPostalCode == null) {
-            log.info("isValid(): address.postalCode is not an integer (\"" + address.getPostalCode() + "\"), returning false");
-            return new ValidationResult(false, "postalCode");
-        }
-        if(iPostalCode < 10000 || iPostalCode >= 60000) {
-            log.info("isValid(): address.postalCode is not a valid postalCode (" + iPostalCode + "), returning false");
+            log.info("validatePostalCode(): address.postalCode is not an integer (\"" + postalCode + "\"), returning false");
             return new ValidationResult(false, "postalCode");
         }
 
-        /* validate city */
-        String city = address.getCity();
+        if(iPostalCode < 10000 || iPostalCode >= 60000) {
+            log.info("validatePostalCode(): address.postalCode is not a valid postalCode (" + iPostalCode + "), returning false");
+            return new ValidationResult(false, "postalCode");
+        }
+
+        return new ValidationResult(true);
+    }
+
+    private ValidationResult validateCity(String city) {
         if(city == null) {
             log.info("isValid(): address.city is null, returning false");
             return new ValidationResult(false, "city");
