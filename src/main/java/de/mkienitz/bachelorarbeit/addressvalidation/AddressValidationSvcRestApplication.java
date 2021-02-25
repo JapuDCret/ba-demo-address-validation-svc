@@ -1,5 +1,7 @@
 package de.mkienitz.bachelorarbeit.addressvalidation;
 
+import de.mkienitz.bachelorarbeit.addressvalidation.application.AddressValidationResource;
+
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 import java.util.HashSet;

@@ -1,4 +1,4 @@
-package de.mkienitz.bachelorarbeit.addressvalidation;
+package de.mkienitz.bachelorarbeit.addressvalidation.domain;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 

@@ -1,4 +1,4 @@
-package de.mkienitz.bachelorarbeit.addressvalidation;
+package de.mkienitz.bachelorarbeit.addressvalidation.domain;
 
 public class ValidationResult {
     private boolean valid;

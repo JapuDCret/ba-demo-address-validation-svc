@@ -1,12 +1,12 @@
-package de.mkienitz.bachelorarbeit.addressvalidation;
+package de.mkienitz.bachelorarbeit.addressvalidation.application;
 
+import de.mkienitz.bachelorarbeit.addressvalidation.domain.Address;
+import de.mkienitz.bachelorarbeit.addressvalidation.domain.ValidationResult;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.opentracing.Traced;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -23,10 +23,8 @@ import javax.ws.rs.core.Response;
 @RequestScoped
 public class AddressValidationResource {
 
-    private static Logger log = LoggerFactory.getLogger(AddressValidationResource.class.getName());
-
     @Inject
-    private AddressValidationService service;
+    private AddressValidationApplicationService service;
 
     @POST
     @Operation(description = "Validates an address, returns 400 if the address is invalid")
